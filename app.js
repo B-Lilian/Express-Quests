@@ -27,6 +27,7 @@ app.get("/api/movies", movieHandlers.getMovies);
 app.get("/api/movies/:id", movieHandlers.getMovieById);
 app.post("/api/movies", movieHandlers.postMovie);
 app.put("/api/movies/:id", movieHandlers.updateMovie);
+app.delete("/api/movies/:id", movieHandlers.deleteMovie);
 
 app.get("/api/users", (req, res) => {
   pool.query("SELECT * FROM users", (err, results) => {
@@ -94,6 +95,24 @@ app.put("/api/users/:id", (req, res) => {
     }
   );
 });
+
+app.delete("/api/users/:id", (req, res) => {
+  const userId = req.params.id;
+
+  pool.query("DELETE FROM users WHERE id = ?", [userId], (err, results) => {
+    if (err) {
+      console.error("Error deleting user from the database:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    if (results.affectedRows === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+    res.status(204).json({ message: "User deleted successfully" });
+  });
+});
+
 
 
 
