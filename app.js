@@ -6,7 +6,7 @@ const app = express();
 
 app.use(express.json());
 
-const port = process.env.APP_PORT ?? 5004;
+const port = process.env.APP_PORT ?? 5005;
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -26,6 +26,7 @@ const movieHandlers = require("./movieHandlers");
 app.get("/api/movies", movieHandlers.getMovies);
 app.get("/api/movies/:id", movieHandlers.getMovieById);
 app.post("/api/movies", movieHandlers.postMovie);
+app.put("/api/movies/:id", movieHandlers.updateMovie);
 
 app.get("/api/users", (req, res) => {
   pool.query("SELECT * FROM users", (err, results) => {
@@ -71,6 +72,31 @@ app.post("/api/users", (req, res) => {
     }
   );
 });
+
+app.put("/api/users/:id", (req, res) => {
+  const userId = req.params.id;
+  const { firstname, lastname, email, city, language } = req.body;
+
+  pool.query(
+    "UPDATE users SET firstname = ?, lastname = ?, email = ?, city = ?, language = ? WHERE id = ?",
+    [firstname, lastname, email, city, language, userId],
+    (err, results) => {
+      if (err) {
+        console.error("Error updating user in the database:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+      if (results.affectedRows === 0) {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
+      res.status(200).json({ message: "User updated successfully" });
+    }
+  );
+});
+
+
+
 
 app.listen(port, (err) => {
   if (err) {
