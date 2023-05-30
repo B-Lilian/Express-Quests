@@ -28,16 +28,34 @@ const movies = [
 const database = require("./database");
 
 const getMovies = (req, res) => {
+  let sql = "SELECT * FROM movies";
+  const sqlValues = [];
+
+  if (req.query.color != null) {
+    sql += " WHERE color = ?";
+    sqlValues.push(req.query.color);
+  }
+  if (req.query.max_duration != null) {
+    if (sqlValues.length === 0) {
+      sql += " WHERE duration <= ?";
+    } else {
+      sql += " AND duration <= ?";
+    }
+    sqlValues.push(req.query.max_duration);
+  }
+
   database
-    .query("select * from movies")
+    .query(sql, sqlValues)
     .then(([movies]) => {
       res.json(movies);
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send("Error retrieving data from database");
+      res.status(500).send("Error retrieving data from the database");
     });
 };
+
+
 
 const getMovieById = (req, res) => {
   const id = parseInt(req.params.id);

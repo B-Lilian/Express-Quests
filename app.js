@@ -30,7 +30,24 @@ app.put("/api/movies/:id", movieHandlers.updateMovie);
 app.delete("/api/movies/:id", movieHandlers.deleteMovie);
 
 app.get("/api/users", (req, res) => {
-  pool.query("SELECT * FROM users", (err, results) => {
+  let sql = "SELECT * FROM users";
+  const sqlValues = [];
+
+  if (req.query.language) {
+    sql += " WHERE language = ?";
+    sqlValues.push(req.query.language);
+  }
+
+  if (req.query.city) {
+    if (sqlValues.length === 0) {
+      sql += " WHERE city = ?";
+    } else {
+      sql += " AND city = ?";
+    }
+    sqlValues.push(req.query.city);
+  }
+
+  pool.query(sql, sqlValues, (err, results) => {
     if (err) {
       console.error("Error querying the database:", err);
       res.status(500).json({ error: "Internal Server Error" });
@@ -113,10 +130,6 @@ app.delete("/api/users/:id", (req, res) => {
   });
 });
 
-
-
-
-
 app.listen(port, (err) => {
   if (err) {
     console.error("Something bad happened");
@@ -124,6 +137,3 @@ app.listen(port, (err) => {
     console.log(`Server is listening on ${port}`);
   }
 });
-
-
-
